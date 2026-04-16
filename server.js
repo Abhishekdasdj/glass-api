@@ -19,7 +19,13 @@ app.post("/api/shape", async (req, res) => {
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
-        messages: req.body.messages
+        messages: [
+  {
+    role: "system",
+    content: "You are a shape generator. Only return JSON array of 2D points like [[x,y],[x,y]]. No explanation."
+  },
+  ...req.body.messages
+]
       })
     });
 
