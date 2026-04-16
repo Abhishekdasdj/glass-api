@@ -1,29 +1,38 @@
 import express from "express";
 import fetch from "node-fetch";
-import dotenv from "dotenv";
 import cors from "cors";
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
 app.post("/api/shape", async (req, res) => {
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.CLAUDE_API_KEY,
-        "anthropic-version": "2023-06-01"
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify({
+        model: "openai/gpt-3.5-turbo",
+        messages: req.body.messages
+      })
     });
 
     const data = await response.json();
-    res.json(data);
+
+    // simple response
+    const text = data.choices?.[0]?.message?.content || "[]";
+
+    // extract JSON array
+    const match = text.match(/\[[\s\S]*\]/);
+    const points = match ? JSON.parse(match[0]) : [];
+
+    res.json({ points });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
